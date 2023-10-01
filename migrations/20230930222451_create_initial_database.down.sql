@@ -1,0 +1,7 @@
+-- Add down migration script here
+DROP USER IF EXISTS app;
+DROP INDEX IF EXISTS BTREE_user_name;
+DROP INDEX IF EXISTS BTREE_email;
+DROP INDEX IF EXISTS BTREE_create_date;
+DROP INDEX IF EXISTS BTREE_update_date;
+DROP TABLE IF EXISTS profiles;
