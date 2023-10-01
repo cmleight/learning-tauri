@@ -13,4 +13,4 @@ wasm-bindgen-futures = "0.4"
 js-sys = "0.3"
 
 [workspace]
-members = ["src-tauri"]
+members = ["src-tauri", "server"]
