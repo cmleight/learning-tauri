@@ -16,9 +16,9 @@ struct GreetArgs<'a> {
 }
 
 #[component]
-pub fn App(cx: Scope) -> impl IntoView {
-    let (name, set_name) = create_signal(cx, String::new());
-    let (greet_msg, set_greet_msg) = create_signal(cx, String::new());
+pub fn App() -> impl IntoView {
+    let (name, set_name) = create_signal(String::new());
+    let (greet_msg, set_greet_msg) = create_signal(String::new());
 
     let update_name = move |ev| {
         let v = event_target_value(&ev);
