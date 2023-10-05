@@ -4,12 +4,66 @@
     <title>Warp Chat</title>
 </head>
 <body>
-<h1>Warp chat</h1>
-<div id="chat">
-    <p><em>Connecting...</em></p>
+<div id="login-div">
+    <h2>Login</h2>
+    <form onsubmit="login()">
+        <table>
+            <tr>
+                <td>
+                    <label for="username-login">Username</label>
+                </td>
+                <td>
+                    <input type="text" id="username-login" name="username" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="password-login">Password</label>
+                </td>
+                <td>
+                    <input type="password" id="password-login" name="password" />
+                </td>
+            </tr>
+        </table>
+        <button type="submit" id="login">Login</button>
+    </form>
+    <h2>Create Account</h2>
+    <form action="/create" method="post">
+        <table>
+            <tr>
+                <td>
+                    <label for="email">Email</label>
+                </td>
+                <td>
+                    <input type="email" id="email" name="email" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="username-create">Username</label>
+                </td>
+                <td>
+                    <input type="text" id="username-create" name="username" />
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <label for="password-create">Password</label>
+                </td>
+                <td>
+                    <input type="password" id="password-create" name="password" />
+                </td>
+            </tr>
+        </table>
+        <button type="submit" id="create">Create</button>
+    </form>
 </div>
-<input type="text" id="text" />
-<button type="button" id="send">Send</button>
+<div id="chat" hidden>
+    <h1>Warp chat</h1>
+    <p><em>Connecting...</em></p>
+    <input type="text" id="text" />
+    <button type="button" id="send">Send</button>
+</div>
 <script type="text/javascript">
     const chat = document.getElementById('chat');
     const text = document.getElementById('text');
@@ -41,6 +95,16 @@
 
         message('<You>: ' + msg);
     };
+
+    login.onclick = function() {
+        const username = document.getElementById('username-login').value;
+        const password = document.getElementById('password-login').value;
+        const data = {
+            username: username,
+            password: password
+        };
+        ws.send(JSON.stringify(data));
+    }
 </script>
 </body>
 </html>

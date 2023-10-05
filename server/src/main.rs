@@ -1,14 +1,8 @@
 mod auth;
 
-// #![deny(warnings)]
 use std::collections::HashMap;
-use std::sync::{
-    atomic::{AtomicUsize, Ordering},
-    Arc,
-};
-
 use futures_util::{SinkExt, StreamExt, TryFutureExt};
-use sqlx::{Pool, Postgres};
+use sqlx::{Executor, Pool, Postgres};
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use sqlx::postgres::PgPoolOptions;
@@ -24,6 +18,17 @@ async fn main() {
 
     let db = warp::any().map(move || pool.clone());
 
+    let login = warp::path("/login")
+        .and(warp::post())
+        .and(warp::body::json())
+        .and(db)
+        .and_then(login);
+    let create = warp::path("/create")
+        .and(warp::post())
+        .and(warp::body::json())
+        .and(db)
+        .and_then(create);
+
     let chat = warp::path("chat")
         .and(warp::ws())
         .and(db)
@@ -35,9 +40,35 @@ async fn main() {
     // GET / -> index html
     let index = warp::path::end().map(|| warp::reply::html(INDEX_HTML));
 
-    let routes = index.or(chat);
+    let routes = index.or(chat).or(login).or(create);
 
     warp::serve(routes).run(([127, 0, 0, 1], 3030)).await;
+}
+
+async fn login(login: HashMap<String, String>, db: Pool<Postgres>) -> Result<impl warp::Reply, warp::Rejection> {
+    let mut conn = db.acquire().await?;
+    if login.get("username").is_none() || login.get("password").is_none() {
+        return Ok(warp::reply::json(&auth::User { id: 0, username: "".to_string(), password: "".to_string() }));
+    }
+    let user = sqlx::query_as::<_, auth::User>("SELECT * FROM users WHERE username = $1 AND password = $2")
+        .bind(login.get("username").unwrap())
+        .bind(login.get("password").unwrap())
+        .fetch_one(&mut conn)
+        .await?;
+    Ok(warp::reply::json(&user))
+}
+
+async fn create_user(user: HashMap<String, String>, db: Pool<Postgres>) -> Result<impl warp::Reply, warp::Rejection> {
+    let mut conn = db.acquire().await?;
+    if user.get("username").is_none() || user.get("password").is_none() {
+        return Ok(warp::reply::json(&auth::User { id: 0, username: "".to_string(), password: "".to_string() }));
+    }
+    let user = sqlx::query_as::<_, auth::User>("INSERT INTO users (username, password) VALUES ($1, $2) RETURNING *")
+        .bind(user.get("username").unwrap())
+        .bind(user.get("password").unwrap())
+        .fetch_one(&mut conn)
+        .await?;
+    Ok(warp::reply::json(&user))
 }
 
 async fn user_connected(ws: WebSocket, db: Pool<Postgres>) {
